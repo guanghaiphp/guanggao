@@ -1,0 +1,135 @@
+<?php
+
+namespace app\index\controller;
+
+use app\index\model\Image;
+use app\index\model\IndexModel;
+use think\Controller;
+use think\Db;
+
+class IndexController extends Controller {
+
+//    public function index1() {
+//        $data =  Db::table('record')
+//            ->field('planname,plan_id,g_name,g_id,type,count(num)as num')
+//            ->group('plan_id ,type')
+//            ->select();
+//        print_r($data);exit;
+//        echo 2;
+//
+//    }
+
+    public function index() {
+        //获取一个随机开启计划
+        $result = Db::query('SELECT * FROM plan where status = 1  ORDER BY RAND() LIMIT 1');
+        //判断计划是否为空
+        if (!empty($result)) {
+            //在判断该计划下是否有广告
+            if ($result[0]['num'] == 0) {
+                //等于0 没有广告
+                echo "该计划没有广告数据";
+                exit;
+            } else {
+                //有广告的情况下
+                //获取这个随机计划的id
+                @$plan_id = $result[0]['plan_id'];
+                /*   //获取该广告计划下的广告
+                  $g_data = Db::table("guanggao")->where('plan_id', $plan_id)->select();
+                  //如果为空
+                  if(empty($g_data))
+                  {
+                  return $this->index();
+                  }
+                  else
+                  {
+                  $arrlen = count($g_data) - 1;
+                  //随机索引
+                  $num = rand(0, $arrlen);
+                  //通过随机索引获取一条广告
+                  $AdverOne = $g_data[$num];
+                  $type = $AdverOne['g_type'];
+                  $name = urlencode($AdverOne['g_name']);
+                  $info = urlencode($AdverOne['g_info']);
+                  $gid = $AdverOne['g_id'];
+                  $picname = $AdverOne['picname'];
+                  $lianjie = $AdverOne['g_lianjie'];
+                  $url = "?gid=$gid&type=$type&name=$name&info=$info&url=$lianjie"; */
+                /* if($type == 2){
+                  $url = $url . "&img=$picname";
+                  }
+                  $this->assign('url',$url);
+                  //获取该广告id
+                  $g_id = $AdverOne['g_id'];
+                  //该广告展示次数+1
+                  Db::table('guanggao')->where('g_id', $g_id)->setInc('show_number');
+                  //赋值给试图
+                  $this->assign('arrData',$AdverOne); */
+                $this->assign('plan_id', $plan_id);
+                return view('home');
+            }
+        } else {
+            echo "该计划没有广告数据";
+        }
+    }
+
+    public function ajax1() {
+        header('Access-Control-Allow-Origin:*');
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        $g_id = $_POST['g_id'];
+        $ip = $_SERVER['REMOTE_ADDR'];
+        //获取广告计划plan_id
+        $data = IndexModel::getG_info($g_id);
+        $plan_id = $data['plan_id'];
+        //插入操作record记录表  userid,ip，plan_id,click+1
+        $reData = IndexModel::getR_info($ip, $g_id);
+        $planname = Db::table('plan')->where('plan_id', $plan_id)->find();
+        $time = time();
+        Db::table('record')
+                ->insert(
+                        ['userip' => $ip,
+                            'plan_id' => $plan_id,
+                            'g_id' => $g_id,
+                            'num' => 1,
+                            'time' => $time,
+                            'planname' => $planname['name'],
+                            'g_name' => $data['g_name'],
+                            'shownumber' => $data['show_number'],
+                            'type' => 2
+        ]);
+    }
+
+    public function show() {
+//            $get =  $_GET;
+//            print_r($get);exit();
+        return $this->fetch();
+    }
+
+    public function addnum() {
+        header('Access-Control-Allow-Origin:*');
+        header('Access-Control-Allow-Methods:POST');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type');
+        $g_id = $_POST['g_id'];
+        $ip = $_SERVER['REMOTE_ADDR'];
+        //获取广告计划plan_id
+        $data = IndexModel::getG_info($g_id);
+        $plan_id = $data['plan_id'];
+        //插入操作record记录表  userid,ip，plan_id,click+1
+        $reData = IndexModel::getR_info($ip, $g_id);
+        $planname = Db::table('plan')->where('plan_id', $plan_id)->find();
+        $time = time();
+        Db::table('record')
+                ->insert(
+                        ['userip' => $ip,
+                            'plan_id' => $plan_id,
+                            'g_id' => $g_id,
+                            'num' => 1,
+                            'time' => $time,
+                            'planname' => $planname['name'],
+                            'g_name' => $data['g_name'],
+                            'shownumber' => $data['show_number'],
+                            'type' => 1
+        ]);
+    }
+
+}

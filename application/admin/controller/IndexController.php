@@ -27,9 +27,7 @@ class IndexController extends AdminAuth
 
         $user = new Administrator;
         $data = input('post.');
-
         if(!captcha_check($data['capt'])){
-
             $this->error('验证码错误');
         };
 

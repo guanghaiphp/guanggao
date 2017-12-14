@@ -173,4 +173,44 @@ class Redis extends Driver
         return $this->handler->flushDB();
     }
 
+    //以下为新增redis调用
+    /**
+    * 将一个或多个值value插入到列表key的表头
+    * @param $name
+    * @param $value
+    * @return int
+    */
+    public function rPush($name, $value)
+    {
+        return $this->handler->rPush($this->getCacheKey($name), $value);
+    }
+
+    /**
+     * 获取队列的实际长度
+     * @param $name
+     * @return int
+     */
+    public function lLen($name)
+    {
+        return $this->handler->lLen($this->getCacheKey($name));
+    }
+
+    /**
+     * 移除并返回列表key的头元素
+     * @param $name
+     * @return string 当不存在时返回nil
+     */
+    public function lPop($name)
+    {
+        return $this->handler->lPop($this->getCacheKey($name));
+    }
+
+    /**
+     * @param $name
+     * @return mixed
+     */
+    public function del($name)
+    {
+        return $this->handler()->del($this->getCacheKey($name));
+    }
 }
